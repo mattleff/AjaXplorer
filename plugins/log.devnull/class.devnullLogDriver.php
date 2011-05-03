@@ -1,8 +1,8 @@
 <?php
 /**
- * @package info.ajaxplorer
+ * @package info.ajaxplorer.plugins
  * 
- * Copyright 2007-2010 Charles du Jeu
+ * Copyright 2007-2009 Charles du Jeu
  * This file is part of AjaXplorer.
  * The latest code can be found at http://www.ajaxplorer.info/
  * 
@@ -31,50 +31,18 @@
  * AjaXplorer is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
  * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * 
- *	ADVANCED : DO NOT CHANGE THESE VARIABLES BELOW
+ * Description : /dev/null logging plugin :)
  */
-if(function_exists("date_default_timezone_set") and function_exists("date_default_timezone_get")){
-	@date_default_timezone_set(@date_default_timezone_get());
-}
+defined('AJXP_EXEC') or die( 'Access not allowed');
 
-@error_reporting(E_ALL & ~E_NOTICE);
-//Windows users may have to uncomment this
-//setlocale(LC_ALL, '');
+require_once(INSTALL_PATH. "/server/classes/class.AbstractLogDriver.php");
 
-
-ini_set("session.cookie_httponly", 1);
-
-define("AJXP_VERSION", "3.2.3");
-define("AJXP_VERSION_DATE", "2011/04/26");
-
-define("AJXP_EXEC", true);
-require("compat.php");
-$installPath = realpath(dirname(__FILE__)."/../..");
-define("INSTALL_PATH", $installPath);
-define("AJXP_INSTALL_PATH", $installPath);
-define("AJXP_PLUGINS_CACHE_FILE", LOCAL_DOCUMENT_ROOT."/cache/AjaXplorer/plugins_cache.ser");
-define("AJXP_PLUGINS_REQUIRES_FILE", LOCAL_DOCUMENT_ROOT."/cache/AjaXplorer/plugins_requires.ser");
-define("SERVER_ACCESS", "content.php");
-define("ADMIN_ACCESS", "admin.php");
-define("IMAGES_FOLDER", "client/themes/oxygen/images");
-define("CLIENT_RESOURCES_FOLDER", "client");
-define("AJXP_THEME_FOLDER", "client/themes/oxygen");
-define("SERVER_RESOURCES_FOLDER", "server/classes");
-define("DOCS_FOLDER", "client/doc");
-define("TESTS_RESULT_FILE", $installPath."/server/conf/diag_result.php");
-define("AJXP_SKIP_CACHE", false);
-
-
-define("INITIAL_ADMIN_PASSWORD", "admin");
-
-define("SOFTWARE_UPDATE_SITE", "http://www.ajaxplorer.info/update/");
-
-function AjaXplorer_autoload($className){
-	$fileName = AJXP_INSTALL_PATH."/".SERVER_RESOURCES_FOLDER."/"."class.".$className.".php";
-	if(file_exists($fileName)){
-		require_once($fileName);
+class devnullLogDriver extends AbstractLogDriver {
+	function init($options){
+		$this->options = $options;
+	}
+	
+	function arrayToString($params){
+		return "";
 	}
 }
-spl_autoload_register('AjaXplorer_autoload');
-
-?>

@@ -42,7 +42,7 @@ defined('AJXP_EXEC') or die( 'Access not allowed');
 // Whether the users system should be active or not.
 // If set to FALSE or 0, all files and settings will be
 // accessible by everybody
-define("ENABLE_USERS", 1);
+define("ENABLE_USERS", 0);
 
 // Startup admin password (used at first creation). Once
 // The admin password is created and his password is changed, 
@@ -65,7 +65,7 @@ define("AJXP_PASSWORD_MINLENGTH", 8);
 //
 // This is the absolute path of the folder on the server, The default value expects 
 // a "public" folder at the root of your ajaxplorer directory.
-define("PUBLIC_DOWNLOAD_FOLDER", realpath(dirname(__FILE__)."/../../public")); // Set to '' to disable
+define("PUBLIC_DOWNLOAD_FOLDER", ''); // Set to '' to disable
 
 // By default, the public download url will be "your ajaxplorer root install"/PUBLIC_DOWNLOAD_FOLDER.
 // If you want to set this to another value, use the variable below; otherwise leave empty.
@@ -93,7 +93,7 @@ define("AJXP_TMP_DIR", "");
 /************************************************
  * CACHE DIR
  ***********************************************/
-define("AJXP_CACHE_DIR", AJXP_INSTALL_PATH."/server/cache");
+define("AJXP_CACHE_DIR", LOCAL_DOCUMENT_ROOT.'/cache/AjaXplorer');
 
 /********************************************
  * CUSTOM VARIABLES HOOK
@@ -124,9 +124,9 @@ $PLUGINS = array(
 	"CONF_DRIVER" => array(
 		"NAME"		=> "serial",
 		"OPTIONS"	=> array(
-			"REPOSITORIES_FILEPATH"	=> "AJXP_INSTALL_PATH/server/conf/repo.ser",
-			"ROLES_FILEPATH"		=> "AJXP_INSTALL_PATH/server/users/roles.ser",
-			"USERS_DIRPATH"			=> "AJXP_INSTALL_PATH/server/users",
+			"REPOSITORIES_FILEPATH"	=> AJXP_CACHE_DIR."/repo.ser",
+			"ROLES_FILEPATH"		=> AJXP_CACHE_DIR."/roles.ser",
+			"USERS_DIRPATH"			=> AJXP_CACHE_DIR."/users",
 			/*
 			"CUSTOM_DATA"			=> array(
 				"email"	=> "Email", 
@@ -139,22 +139,18 @@ $PLUGINS = array(
 		"NAME"		=> "serial",
 		"OPTIONS"	=> array(
 			"LOGIN_REDIRECT"		=> false,
-			"USERS_FILEPATH"		=> "AJXP_INSTALL_PATH/server/users/users.ser",
+			"USERS_FILEPATH"		=> AJXP_CACHE_DIR."/users/users.ser",
 			"AUTOCREATE_AJXPUSER" 	=> false, 
-			"TRANSMIT_CLEAR_PASS"	=> false )
+			"TRANSMIT_CLEAR_PASS"	=> false)
 	),
 	"LOG_DRIVER" => array(
-	 	"NAME" => "text",
-	 	"OPTIONS" => array( 
-	 		"LOG_PATH" => "AJXP_INSTALL_PATH/server/logs/",
-	 		"LOG_FILE_NAME" => 'log_' . date('m-d-y') . '.txt',
-	 		"LOG_CHMOD" => 0770
-	 	)
+	 	"NAME" => "devnull",
+	 	"OPTIONS" => array()
 	),
 	// Do not use wildcard for uploader, to keep them in a given order
 	// Warning, do not add the "meta." plugins, they are automatically
 	// detected and activated by the application.
-	"ACTIVE_PLUGINS" => array("editor.*", "uploader.flex", "uploader.html", "gui.ajax", "hook.*")
+	"ACTIVE_PLUGINS" => array("editor.*", "uploader.flex", "uploader.html", "gui.ajax", "hook.*", "log.devnull")
 );
 if(AJXP_Utils::userAgentIsMobile()){
 	$PLUGINS["ACTIVE_PLUGINS"][] = "gui.mobile";
@@ -165,30 +161,32 @@ if(AJXP_Utils::userAgentIsMobile()){
 /* Use the GUI to add new repositories to explore!
 /*   + Log in as "admin" and open the "Settings" Repository
 /*********************************************************/
-$REPOSITORIES[0] = array(
-	"DISPLAY"		=>	"Default Files", 
-	"AJXP_SLUG"		=>  "default",
-	"DRIVER"		=>	"fs", 
-	"DRIVER_OPTIONS"=> array(
-		"PATH"			=>	realpath(dirname(__FILE__)."/../../files"), 
-		"CREATE"		=>	true,
-		"RECYCLE_BIN" 	=> 	'recycle_bin',
-		"CHMOD_VALUE"   =>  '0600',
-		"DEFAULT_RIGHTS"=>  "",
-		"PAGINATION_THRESHOLD" => 500,
-		"PAGINATION_NUMBER" => 200,
-		"META_SOURCES"		=> array(
-		/*
-			"meta.serial"=> array(
-				"meta_file_name"	=> ".ajxp_meta",
-				"meta_fields"		=> "testKey1,stars_rate,css_label",
-				"meta_labels"		=> "Test Key,Rating,Label"
+session_start();
+if( DB_user::getSessionUser() and DB_user::getSessionUser()->isLevelOrAbove( 'Public' ) ) {
+	$REPOSITORIES[0] = array(
+		"DISPLAY"		=>	"Site Files", 
+		"DRIVER"		=>	"fs", 
+		"DRIVER_OPTIONS"=> array(
+			"PATH"			=>	LOCAL_DOCUMENT_ROOT."/site/".SF_static_global::getSiteId(), 
+			"CREATE"		=>	true,
+			"RECYCLE_BIN" 	=> 	'recycle_bin',
+			"CHMOD_VALUE"   =>  '0600',
+			"DEFAULT_RIGHTS"=>  "",
+			"PAGINATION_THRESHOLD" => 500,
+			"PAGINATION_NUMBER" => 200,
+			"META_SOURCES"		=> array(
+			/*
+				"meta.serial"=> array(
+					"meta_file_name"	=> ".ajxp_meta",
+					"meta_fields"		=> "testKey1,stars_rate,css_label",
+					"meta_labels"		=> "Test Key,Rating,Label"
+				)
+			*/
 			)
-		*/
-		)
-	),
-	
-);
+		),
+		
+	);
+}
 
 // DO NOT REMOVE THIS!
 // SHARE ELEMENTS
@@ -239,7 +237,7 @@ $AJXP_SESSION_SET_CREDENTIALS = false;
 /*	GLOBAL UPLOAD CONFIG
 /*********************************************/
 // Maximum number of files for each upload. Leave to 0 for no limit.
-$upload_max_number = 16;
+$upload_max_number = 0;
 
 // Maximum size per file allowed to upload. By default, this is fixed by php config 'upload_max_filesize'.
 // Use this one only if you want to set it smaller than the php config. If you want to increase the php value, 
@@ -265,7 +263,7 @@ define("GZIP_LIMIT", 1*1048576); // Do not Gzip files above 1M
 // If enabled, it uses PclZip php library, based on the gz php functions.
 // If you are encountering problems with this, set this to true. A "multiple downloader"
 // will appear instead.
-define("DISABLE_ZIP_CREATION", false);
+define("DISABLE_ZIP_CREATION", true);
 
 /***********************************************/
 /* CLIENT SESSION OPTIONS
@@ -301,9 +299,9 @@ define("GOOGLE_ANALYTICS_EVENT", false);
 /* CUSTOM MESSAGE IN START UP SCREEN
 /***********************************************/
 // Your app title, AjaXplorer by default
-$customTitle = "";
+$customTitle = "SimpleUpdates.com File Management";
 // Font size for the start up screen title, "35px" by default
-$customTitleFontSize = "";
+$customTitleFontSize = "24";
 // A custom icon, path must be from the root of the ajaxplorer installation
 $customIcon = "";
 // Space to leave for the icon, most probably the real image width plus a couple

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<logdriver name="devnull" label="Dev Null logger" description="Stores the logs to /dev/null." className="devnullLogDriver">
+	<class_definition filename="plugins/log.devnull/class.devnullLogDriver.php" classname="devnullLogDriver"/>
+</logdriver>
